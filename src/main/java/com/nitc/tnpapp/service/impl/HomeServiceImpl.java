@@ -10,6 +10,7 @@ import com.nitc.tnpapp.entity.Role;
 import com.nitc.tnpapp.entity.User;
 import com.nitc.tnpapp.repository.PlacementOfficerRepo;
 import com.nitc.tnpapp.repository.RoleRepo;
+import com.nitc.tnpapp.repository.StudentRepo;
 import com.nitc.tnpapp.repository.UserRepo;
 import com.nitc.tnpapp.service.HomeService;
 import com.nitc.tnpapp.util.ResponseEntity;
@@ -32,21 +33,25 @@ public class HomeServiceImpl implements HomeService {
 	@Autowired
 	PlacementOfficerRepo placementOfficerRepo;
 
+	@Autowired
+	StudentRepo studentRepo;
 //	@Autowired
 //	User user;
-	
+
 //	@Autowired
 //	Role PO;
-	
+
 	@Override
 	public ResponseEntity registerPO(PlacementOfficer placementOfficer) {
-		
+
 		Optional<PlacementOfficer> registeredPO = null;
 		registeredPO = placementOfficerRepo.findById(placementOfficer.getPlacementOfficerId());
-		Optional<PlacementOfficer> registeredPOEmail = null; 
-		registeredPOEmail = placementOfficerRepo.findByPlacementOfficerEmail(placementOfficer.getPlacementOfficerEmail());
-		Optional<PlacementOfficer> registeredPOPhoneNo = null; 
-		registeredPOPhoneNo = placementOfficerRepo.findByPlacementOfficerPhoneNo(placementOfficer.getPlacementOfficerPhoneNo());
+		Optional<PlacementOfficer> registeredPOEmail = null;
+		registeredPOEmail = placementOfficerRepo
+				.findByPlacementOfficerEmail(placementOfficer.getPlacementOfficerEmail());
+		Optional<PlacementOfficer> registeredPOPhoneNo = null;
+		registeredPOPhoneNo = placementOfficerRepo
+				.findByPlacementOfficerPhoneNo(placementOfficer.getPlacementOfficerPhoneNo());
 
 		if (registeredPO.isPresent()) {
 			responseEntity.setHttpResponse("failure");
@@ -68,8 +73,7 @@ public class HomeServiceImpl implements HomeService {
 			responseEntity.setObject(null);
 			return responseEntity;
 		}
-		
-		
+
 //		///////////////////
 		placementOfficerRepo.save(placementOfficer);
 		User user = new User();
@@ -81,38 +85,48 @@ public class HomeServiceImpl implements HomeService {
 		responseEntity.setMessage("Registration successfull");
 		responseEntity.setStatus(200);
 		responseEntity.setObject(placementOfficer);
-		
+
 		return responseEntity;
 	}
-	
+
 	@Override
 	public ResponseEntity login(User userLogin) {
 
 		Optional<User> fetchedUser = userRepo.findById(userLogin.getUsername());
 
 		if (fetchedUser.isPresent()) {
-			if (userLogin.getPassword() != fetchedUser.get().getPassword()) {
+//			if (userLogin.getPassword() != fetchedUser.get().getPassword()) {
+			if (!userLogin.getPassword().equals(fetchedUser.get().getPassword())) {
+				System.out.println(userLogin.getPassword());
+				System.out.println(fetchedUser.get().getPassword());
 				responseEntity.setHttpResponse("failure");
 				responseEntity.setMessage("Passwords dont match");
 				responseEntity.setStatus(500);
 				responseEntity.setObject(null);
-			}
-			else if (userLogin.getRole().getRoleName() != fetchedUser.get().getRole().getRoleName()) {
+			} else if (!userLogin.getRole().getRoleName().equals(fetchedUser.get().getRole().getRoleName())) {
 				responseEntity.setHttpResponse("failure");
 				responseEntity.setMessage("Roles dont match");
 				responseEntity.setStatus(500);
 				responseEntity.setObject(null);
-			}
-			else {
+			} else {
 				responseEntity.setHttpResponse("success");
-				responseEntity.setMessage("successfully logged in");
+				
 				responseEntity.setStatus(200);
-//				responseEntity.setObject();
+				if (userLogin.getRole().getRoleName().equals("placement officer") ) {
+					responseEntity.setMessage("successfully logged in as " + placementOfficerRepo.findById(userLogin.getUsername()).get().getPlacementOfficerName());
+					responseEntity.setObject(placementOfficerRepo.findById(userLogin.getUsername()).get());
+				} else if (userLogin.getRole().getRoleName().equals("student")) {
+					responseEntity.setMessage("successfully logged in as " + studentRepo.findById(userLogin.getUsername()).get().getStudentName());
+					responseEntity.setObject(studentRepo.findById(userLogin.getUsername()).get());
+				}
+
 			}
 
-		}
-		else {
-			// not present
+		} else {
+			responseEntity.setHttpResponse("failure");
+			responseEntity.setMessage("User does not exist");
+			responseEntity.setStatus(404);
+			responseEntity.setObject(null);
 		}
 
 		return responseEntity;
