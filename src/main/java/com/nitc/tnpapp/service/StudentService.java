@@ -14,5 +14,5 @@ public interface StudentService {
 	
 	public ResponseEntity companiesActiveToApply();
 	
-	public ResponseEntity applyForCompany(@RequestParam String companyCode, @RequestParam String studentRollNo);
+	public ResponseEntity applyForCompany(String companyCode,String studentRollNo);
 }

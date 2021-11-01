@@ -7,9 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.nitc.tnpapp.entity.Company;
+import com.nitc.tnpapp.entity.Role;
 import com.nitc.tnpapp.entity.Student;
+import com.nitc.tnpapp.entity.User;
 import com.nitc.tnpapp.repository.CompanyRepo;
+import com.nitc.tnpapp.repository.RoleRepo;
 import com.nitc.tnpapp.repository.StudentRepo;
+import com.nitc.tnpapp.repository.UserRepo;
 import com.nitc.tnpapp.service.StudentService;
 import com.nitc.tnpapp.util.ResponseEntity;
 
@@ -24,6 +28,12 @@ public class StudentServiceImpl implements StudentService {
 
 	@Autowired
 	CompanyRepo companyRepo;
+
+	@Autowired
+	UserRepo userRepo;
+
+	@Autowired
+	RoleRepo roleRepo;
 
 	@Override
 	public ResponseEntity registerStudent(Student student) {
@@ -58,6 +68,13 @@ public class StudentServiceImpl implements StudentService {
 		student.setPlacedCompany(null);
 		student.setPlacementStatus("Not Placed");
 		student = studentRepo.save(student);
+
+		User registeredUser = new User();
+		registeredUser.setPassword(student.getStudentRollNo());
+		registeredUser.setUsername(student.getStudentRollNo());
+		registeredUser.setRole(roleRepo.findById("student").get());
+
+		userRepo.save(registeredUser);
 		responseEntity.setHttpResponse("success");
 		responseEntity.setMessage("Registration successfull");
 		responseEntity.setStatus(200);
